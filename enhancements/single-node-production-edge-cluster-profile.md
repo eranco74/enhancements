@@ -140,9 +140,12 @@ deployments.
 
 Although the environment is assumed to have significant resources, it
 is important to dedicate most of them to end-user workloads, rather
-than cluster control plane or monitoring. Therefore, the cluster
-profile will configure telemetry and logging to forward data, instead
-of collecting it locally.
+than cluster control plane or monitoring. Therefore, the cluster profile
+will configure the logging and monitoring components with
+efficient configuration for single node use case:
+* Reducing the number of replicas
+* Cutting retention in half reduces disk in half
+* Doubling the scrape interval reduces CPU in half
 
 Edge deployments are typically part of a large fleet that is managed
 automatically rather than one at a time. Therefore the console will
@@ -328,10 +331,14 @@ CI coverage informing the release. An end-to-end job using the profile
 and running an appropriate subset of the standard OpenShift tests
 will be created and configured to block accepting release images
 unless it passes.
+Ci coverage should validate MCO support node reboot and that  kube control plane operators support configuration changes.
 
 That end-to-end job should also be run against pull requests for
 the operators and other components that are most affected by the new
 profile, such as the etcd and auth operators.
+
+
+Integration CI jobs that runs with the optional operators expected for this deployment (NTO, SRIOV, PTP)
 
 ### Graduation Criteria
 
