@@ -102,7 +102,8 @@ The `bootstrap-in-place-for-live-iso.ign` will be embedded into an RHCOS liveCD 
 The user will boot a machine with this liveCD and the liveCD will start executing a similar flow to a bootstrap node in a regular installation.
 
 `bootkube.sh` running on the live ISO will execute the rendering logic.
-The live ISO environment provides a scratch place to write bootstrapping files so that they don't end up on the real node. This eliminates a potential source of errors and confusion when debugging problems.
+The live ISO environment provides a scratch place to write bootstrapping files so that they don't end up on the real node.
+ This eliminates a potential source of errors and confusion when debugging problems.
 
 The bootstrap static pods will be generated in a way that the control plane operators will be able to identify them and
  either continue in a controlled way for the next revision, or just keep them as the correct revision and reuse them.
@@ -185,6 +186,16 @@ The files that we need to delete are under:
 These files are required for the bootstrap control plane to start before it is replaced by the control plane operators.
 Once the OCP control plane static pods are deployed we can delete the files as they are no longer required. 
 
+#### Requirements for a Single Node deployment with bootstrap-in-place
+The requirements are a subset of the requirements for user-provisioned infrastructure installation.
+1. Configure DHCP or set static IP addresses for the node.
+The node IP should be persistent, otherwise TLS SAN will be invalidated and will cause the communications between apiserver and etcd to fail.
+2. DNS records:
+* api.<cluster_name>.<base_domain>.
+* api-int.<cluster_name>.<base_domain>.
+* *.apps.<cluster_name>.<base_domain>.
+* <hostname>.<cluster_name>.<base_domain>.
+
 ### Initial Proof-of-Concept
 
 User flow
@@ -233,10 +244,19 @@ It can also take things like additional manifests for setting the RT kernel (and
 Internally, create single-node-iso would compile a single-node-iso-target.yaml into Ignition (much like coreos/fcct)
  and include it along with the Ignition it generates and embed it into the ISO.
 
+### Allow bootstrap-in-place in cloud environment (future work)
+For bootstrap-in-place model to work in cloud environemnt we need to mitigate the following gaps:
+1. The bootstrap-in-place model relay on the live ISO environment as a place to write bootstrapping files so that they don't end up on the real node.
+Optional mitigation: We can mimic this environment by mounting some directories as tmpfs during the bootstrap phase.
+2. The bootstrap-in-place model uses coreos-installer to write the final Ignition to disk along with the RHCOS image.
+Optional mitigation: We can boot the machine with the right RHCOS image for the release.
+Instead of writing the Ignition to disk we will use the cloud credentials to update the node Ignition config in the cloud provider.
+
+
 ### Limitations
 
 While most CRDs get created by CVO some CRDs are created by the operators, since during the bootstrap phase there is no schedulable node, 
- operators can't run, these CRDs won't be created until the node pivot to become the master node. 
+ operators can't run, these CRDs won't be created until the node pivot to become the master node.
 This imposes a limitation on the user when specifying custom manifests prior to the installation.
 These are the CRDs that are not present during bootstrap:
 * clusternetworks.network.openshift.io
