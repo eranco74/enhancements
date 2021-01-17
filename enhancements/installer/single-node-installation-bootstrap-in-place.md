@@ -298,6 +298,23 @@ limitation and encouraged to avoid creating custom manifests using
 CRDs installed by cluster operators instead of the
 `cluster-version-operator`.
 
+#### Bootstrap logs retention
+ 
+ Due to the bootstrap-in-place behavior all bootstrap artifacts
+ will be lost once the bootstrap the node reboots.
+In a regular installation flow the bootstrap node goes down only once
+ the control plane is running, and the bootstrap node served its purpose.
+In case of bootstrap in place things can go wrong after the reboot.
+The bootstrap logs can aid in troubleshooting a subsequently failed install. 
+
+Mitigation by gathering the bootstrap logs before reboot.
+ bootstrap will gather logs from itself using /usr/local/bin/installer-gather.sh.
+ Once gathering is complete, the bundle will be added to the master ignition,
+ thus making the bootstrap logs available from the master after reboot.
+ The log bundle will be deleted once the installation completes.
+ 
+Retention can be to a location that avoids the possibility of errors or confusion.
+
 ## Design Details
 
 ### Open Questions
