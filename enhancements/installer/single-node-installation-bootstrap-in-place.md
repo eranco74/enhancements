@@ -250,19 +250,7 @@ The node IP should be persistent, otherwise TLS SAN will be invalidated and will
 A proof-of-concept implementation is available for experimenting with
 the design.
 
-This POC uses the following services for mitigating some gaps:
-- `patch.service` for allowing single node installation. This won't be required after [single-node production deployment](https://github.com/openshift/enhancements/pull/560) is implemented.
-- `post_reboot.service` for approving the node CSR and bootstrap static pods resources cleanup post reboot.
-
-To try it out:
-
-1. Clone the POC repo: `git clone https://github.com/eranco74/bootstrap-in-place-poc.git`
-2. Copy ./install-config.yaml.tmpl` to ./install-config.yaml` and add your ssh key and pull secret to it
-3. Extract the openshift-installer from the release image and generate ignition - `make generate`
-4. Set up networking - `make network` (provides DNS for `Cluster name: test-cluster, Base DNS: redhat.com`)
-5. Download rhcos image - `make embed` (download RHCOS liveCD and embed the bootstrap Ignition)
-6. Spin up a VM with the the liveCD - `make start-iso`
-7. Monitor the progress using `make ssh` and `journalctl -f -u bootkube.service` or `kubectl --kubeconfig ./mydir/auth/kubeconfig get clusterversion`
+To try it out: [bootstrap-in-place-poc](https://github.com/eranco74/bootstrap-in-place-poc.git)
 
 ### Risks and Mitigations
 
