@@ -53,13 +53,12 @@ The downsides of requiring a bootstrap node for Single Node OpenShift are:
 2. Requires external dependencies:
    1. Load balancer (only for bootstrap phase)
    2. Preconfigured DNS (for each deployment)
-3. Cannot use Bare Metal IPI:
-   1. Adds additional dependencies - VIPs, keepalived, mdns
 
 ### Goals
 
 * Describe an approach for installing Single Node OpenShift in a BareMetal environment for production use.
-* The implementation should require minimal changes to the OpenShift installer and the should not affect existing deployment flows.
+* The implementation should require minimal changes to the OpenShift installer,
+it should strive to reuse existing code and should not affect existing deployment flows.
 * Installation should result a clean Single Node OpenShift without any bootstrap leftovers.
 * Describe an approach that can be carried out by a user manually or automated by an orchestration tool.
 
@@ -194,7 +193,7 @@ can reduce them by reducing revisions caused by observations of known
 conditions.  For example in a single node we know what the etcd
 endpoints will be in advance, We can avoid a revision by observing
 this post install.  This work will go a long way to reducing
-disruption during install and improve MTTR for upgrade re-deployments
+disruption during install and improve mean time to recovery for upgrade re-deployments
 and failures.
 
 The control plane components we will copy from
@@ -313,7 +312,18 @@ Mitigation by gathering the bootstrap logs before reboot.
  thus making the bootstrap logs available from the master after reboot.
  The log bundle will be deleted once the installation completes.
  
-Retention can be to a location that avoids the possibility of errors or confusion.
+The installer `gather` command works as usual before the reboot.
+We will add a new script called installer-master-bootstrap-in-place-gather.sh.
+ This script will be delivered to the master using via Ignition to the same
+ location where the bootstrap node usually has installer-gather.sh.
+The installer-master-bootstrap-in-place-gather.sh, will be called by the
+ `openshift-install gather` command that believes its collecting logs from a bootstrap node.
+The script however behaves slightly different, instead of collecting bootstrap logs
+and then remotely running /usr/local/bin/installer-masters-gather.sh on all master nodes,
+ the script will collect the bootstrap logs from the bundle copied to via the master-ignition,
+ and collect master logs by running /usr/local/bin/installer-masters-gather.sh directly
+ on itself. The final archiving of all the logs into the home directory,
+ exactly the same as /usr/local/bin/installer-gather.sh.
 
 ## Design Details
 
