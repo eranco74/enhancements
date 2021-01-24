@@ -438,7 +438,7 @@ up all the bootstrap residue once the node is fully configured.  This
 is very similar to the current enhancement installation approach but
 without the requirement to start from a live image.  The advantage of
 this approach is that it will work in a cloud environment as well as
-on bare metal.  The disadvantage is that it is more prone to result in
+on bare metal. The disadvantage is that it is more prone to result in
 a single node deployment with bootstrapping leftovers in place,
 potentially leading to confusion for users or support staff debugging
 the instances.
@@ -448,11 +448,18 @@ the instances.
 
 We could have the installer generate an Ignition config that includes
 all of the assets required for launching the single node cluster
-(including TLS certificates and keys).  When booting a machine with
+(including TLS certificates and keys). When booting a machine with
 CoreOS and this Ignition configuration, the Ignition config would lay
 down the control plane operator static pods and create a static pod
 that functions as `cluster-bootstrap` This pod should delete itself
 after it is done applying the OCP assets to the control plane.
+The disadvantage in this approach is that it's very different than 
+the regular installation flow which involve a bootstrap node.
+It also adds more challenges such as:
+1. The installer machine (usually the Admin laptop) will need to pull
+20 container images in order to render the Ignition.
+2. The installer will need to know the node IP in advance for rendering
+etcd certificates
 
 ### Preserve etcd database instead of a snapshot
 
